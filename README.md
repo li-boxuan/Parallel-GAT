@@ -1,4 +1,4 @@
-Parallel GAT
+# Parallel GAT
 
 ## Authors
 
