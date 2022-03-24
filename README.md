@@ -1,4 +1,8 @@
+Parallel GAT
 
+## Authors
+
+Xinyue Chen, Boxuan Li
 
 ## Summary
 
