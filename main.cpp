@@ -19,6 +19,9 @@ int main(){
   gat_2.random_init();
   gat_1.forward(nodes, &adj);
   gat_2.forward(nodes, &adj);
-
+  for (int i = 0; i < num_nodes; i++) {
+    delete(nodes[i]);
+  }
+  free(nodes);
 }
 
