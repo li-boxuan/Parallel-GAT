@@ -65,14 +65,24 @@ For datasets, we intend to generate graphs of different connectivity and sizes f
 
 Mar 23: Finish project proposal
 
-Apr 4: Finish serialized GAT in C++
+Apr 11: [Checkpoint] Finish serialized GAT in C++
 
-Apr 11: [Checkpoint] Finish one parallelized version using OpenMP
+Apr 18:  Finish one parallelized version using OpenMP
 
-Apr 18: Finish another parallelized version using CUDA
-
-Apr 25: Finish performance comparison
+Apr 25: Finish another parallelized version using CUDA and conduct performance comparison
 
 Apr 29: Finish report
 
 May 5: Presentation
+
+
+
+## Milestone
+
+We have completed the pipeline for serialized version of GAT in C++. The current version supports random initialization of model parameters, including weights of the model the the input features of the node. It also support variable number of attention heads and hidden sizes. 
+
+We believe we will be able to finish at least one parallelized version using OpenMP. Most of the work will be focused on the optimization of matrix multiplication and performance comparison.  
+
+For the poster session, we plan to present the performance comparison of different parallelization versions and the the serialized version, with input graphs with different scales and connectivities. To hit this, we first need to ensure the our model is logically correct by comparing the outputs with the outputs of an oracle model. Then, we need to implement parallelized versions and optimize the message passing mechanism to increase cache utility and improve computation efficiency catering to the mechanism of the parallelization method of interest.
+
+The potential concerns may include: 1) how the memory size of our computing machine would limit the scale of the input graphs, 2) to what extent could we improve the efficiency using OpenMP and possibly CUDA.
