@@ -1,5 +1,6 @@
 #ifndef PROJ_SPARSE_H
 #define PROJ_SPARSE_H
+
 #include <vector>
 #include <fstream>
 #include <iostream>
@@ -42,16 +43,16 @@ public:
                   << filename << "'" << std::endl;
       }
       std::getline(input_file, line);
-      ss<<line;
-      ss>>num_rows>>num_elements;
+      ss << line;
+      ss >> num_rows >> num_elements;
       std::getline(input_file, line);
-      std::istringstream iss{ line };
+      std::istringstream iss{line};
       auto end = std::istream_iterator<int>();
       for (std::istream_iterator<int> p(iss); p != end; ++p) {
         col_idx.push_back(*p);
       }
       std::getline(input_file, line);
-      std::istringstream iss2{ line };
+      std::istringstream iss2{line};
       for (std::istream_iterator<int> p(iss2); p != end; ++p) {
         delim.push_back(*p);
       }

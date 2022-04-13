@@ -38,7 +38,7 @@ public:
       for (int i = 0; i < num_heads; i++) {
         params[i] = new param_single_head(feat_dim, msg_dim);
       }
-      affinity_sum = (float*) calloc(sizeof(float), num_nodes);
+      affinity_sum = (float *) calloc(sizeof(float), num_nodes);
     }
 
 
