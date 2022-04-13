@@ -49,7 +49,7 @@ public:
           for (int row_idx = 0; row_idx < msg_dim; row_idx++) {
             for (int col_idx = 0; col_idx < feat_dim; col_idx++) {
               nodes[i]->msgs[j][row_idx] += params[j]->W[row_idx][col_idx] *
-                                            nodes[i]->input_feats[int(floor(col_idx / msg_dim))][col_idx % msg_dim];
+                                            nodes[i]->input_feats[j][col_idx];
             }
           }
         }
