@@ -1,59 +1,68 @@
-#ifndef PROJ_PARAM_H
-#define PROJ_PARAM_H
-
-#include <random>
+#ifndef PROJ_SPARSE_H
+#define PROJ_SPARSE_H
+#include <vector>
+#include <fstream>
+#include <iostream>
+#include <sstream>
+#include <iterator>
 #include <cstdlib>
-class param_single_head {
-public:
-    float **W;
-    float *A1;
-    float *A2;
-    int in_dim;
-    int out_dim;
 
-    param_single_head(int in_dimension, int out_dimension) :
-        in_dim(in_dimension), out_dim(out_dimension) {
-      W = (float**)calloc(sizeof(float *), out_dim);
-      for (int i = 0; i < out_dim; i++) {
-        W[i] = (float*)calloc(sizeof(float), in_dim);
+class sparse_matrix {
+public:
+    int num_rows;
+    int num_elements;
+    std::vector<int> col_idx;
+    std::vector<int> delim;
+    std::vector<float> vals;
+//    int *col_idx;
+//    int *delim;
+//    float *vals;
+
+    sparse_matrix() {
+//      num_elements = 19;
+//      num_rows = 8;
+//      col_idx = (int *) calloc(sizeof(int), num_elements);
+//      vals = (float *) calloc(sizeof(float), num_elements);
+//      delim = (int *) calloc(sizeof(int), num_rows);
+//      int col_idx_[] = {0, 4, 7, 1, 4, 6, 2, 3, 5, 2, 3, 1, 4, 2, 5, 1, 6, 0, 7};
+//      int delim_[] = {0, 3, 6, 9, 11, 13, 15, 17, 19};
+//      for (int i = 0; i < num_elements; i++) {
+//        col_idx[i] = col_idx_[i];
+//      }
+//      for (int i = 0; i < num_rows; i++) {
+//        delim[i] = delim_[i];
+//      }
+
+      std::string filename("adj.txt");
+      std::string line;
+      std::stringstream ss;
+      std::ifstream input_file(filename);
+      if (!input_file.is_open()) {
+        std::cerr << "Could not open the file - '"
+                  << filename << "'" << std::endl;
       }
-      A1 = (float*)calloc(sizeof(float), out_dim);
-      A2 = (float*)calloc(sizeof(float), out_dim);
-    };
-    ~param_single_head() {
-      for (int i = 0; i < out_dim; i++) {
-        free(W[i]);
+      std::getline(input_file, line);
+      ss<<line;
+      ss>>num_rows>>num_elements;
+      std::getline(input_file, line);
+      std::istringstream iss{ line };
+      auto end = std::istream_iterator<int>();
+      for (std::istream_iterator<int> p(iss); p != end; ++p) {
+        col_idx.push_back(*p);
       }
-      free(W);
-      free(A1);
-      free(A2);
+      std::getline(input_file, line);
+      std::istringstream iss2{ line };
+      for (std::istream_iterator<int> p(iss2); p != end; ++p) {
+        delim.push_back(*p);
+      }
+      vals.reserve(num_elements);
     }
-    void random_init() {
-      std::default_random_engine generator;
-      std::normal_distribution<float> distribution(0.f,0.1f);
-      for (int i = 0; i < out_dim; i++) {
-        for (int j = 0; j < in_dim; j++) {
-          W[i][j] = distribution(generator);
-        }
-      }
-      for (int i = 0; i < out_dim; i++) {
-        A1[i] = distribution(generator);
-      }
-      for (int i = 0; i < out_dim; i++) {
-        A2[i] = distribution(generator);
-      }
-//      for (int i = 0; i < out_dim; i++) {
-//        for (int j = 0; j < in_dim; j++) {
-//          W[i][j] = 0.1f;
-//        }
-//      }
-//      for (int i = 0; i < out_dim; i++) {
-//        A1[i] = 0.1f;
-//      }
-//      for (int i = 0; i < out_dim; i++) {
-//        A2[i] = 0.1f;
-//      }
+
+    ~sparse_matrix() {
+//      free(col_idx);
+//      free(vals);
+//      free(delim);
     }
 };
 
-#endif //PROJ_PARAM_H
+#endif //PROJ_SPARSE_H
