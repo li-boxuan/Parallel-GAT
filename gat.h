@@ -20,8 +20,8 @@ class GAT {
 public:
     int num_nodes;
     int num_heads;
-    int msg_dim;  // per head
     int feat_dim;
+    int msg_dim;  // per head
     param_single_head **params;
     float *affinity_sum;
 
@@ -29,11 +29,11 @@ public:
      *
      * @param n_nodes
      * @param n_heads
+     * @param feature_dim
      * @param message_dim
      */
-    GAT(int n_nodes, int n_heads, int message_dim) :
-        num_nodes(n_nodes), num_heads(n_heads), msg_dim(message_dim) {
-      feat_dim = n_heads * msg_dim;
+    GAT(int n_nodes, int n_heads, int feature_dim, int message_dim) :
+        num_nodes(n_nodes), num_heads(n_heads), feat_dim(feature_dim), msg_dim(message_dim) {
       params = (param_single_head **) calloc(sizeof(param_single_head *), num_heads);
       for (int i = 0; i < num_heads; i++) {
         params[i] = new param_single_head(feat_dim, msg_dim);
@@ -49,7 +49,7 @@ public:
           for (int row_idx = 0; row_idx < msg_dim; row_idx++) {
             for (int col_idx = 0; col_idx < feat_dim; col_idx++) {
               nodes[i]->msgs[j][row_idx] += params[j]->W[row_idx][col_idx] *
-                                            nodes[i]->input_feats[int(floor(col_idx / msg_dim))][col_idx % msg_dim];
+                                            nodes[i]->input_feats[col_idx];
             }
           }
         }
@@ -73,12 +73,12 @@ public:
             adj->vals[neighbor_idx] = curr_affinity;
             affinity_sum[j] += curr_affinity;
           }
-          // out: nodes[j].next_input_feats[i]
+          // out: nodes[j].output_feats[i]
           for (int k = start_idx; k < end_idx; k++) {
             int neighbor_idx = adj->col_idx[k];
             float w = adj->vals[neighbor_idx] / affinity_sum[j];
             for (int v = 0; v < msg_dim; v++) {
-              nodes[j]->next_input_feats[i][v] += w * nodes[neighbor_idx]->msgs[i][v];
+              nodes[j]->output_feats[i][v] += w * nodes[neighbor_idx]->msgs[i][v];
             }
           }
         }
