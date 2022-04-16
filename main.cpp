@@ -55,6 +55,33 @@ int main() {
   in.close();
   gat_1.forward(nodes, &adj);
 
+  // Predict and calculate micro-F1 score
+  // reference output in PyTorch: ~0.60
+  // micro-F1 score = TP / (TP + 0.5 * (FP + FN))
+  int TP = 0, FP = 0, FN = 0;
+  for (int i = 0; i < num_nodes; i++) {
+    // average outputs across multiple heads
+    for (int j = 0; j < msg_dim; j++) {
+      float output = 0.0f;
+      for (int k = 0; k < num_heads; k++) {
+        output += nodes[i]->output_feats[k][j];
+      }
+      int pred = output >= 0 ? 1 : 0;
+      int label = nodes[i]->label[j];
+      if (pred == 1 && label == 1) {
+        TP++;
+      } else if (pred != label) {
+        if (pred == 1) {
+          FP++;
+        } else {
+          FN++;
+        }
+      }
+    }
+  }
+  float micro_f1_score = TP / (TP + 0.5 * (FP + FN));
+  std::cout << "Micro F1 score = " << micro_f1_score << std::endl;
+
   for (int i = 0; i < num_nodes; i++) {
     delete (nodes[i]);
   }

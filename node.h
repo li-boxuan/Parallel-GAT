@@ -15,7 +15,7 @@ public:
     float **output_feats;  // (num_heads, msg_dim)
 
     // for testing purpose
-    float *label; // msg_dim
+    int *label; // msg_dim
 
     node(int n_feats, int n_heads, int message_dim) : feat_dim(n_feats), num_heads(n_heads),
                                                       msg_dim(message_dim) {
@@ -28,7 +28,7 @@ public:
       for (int i = 0; i < num_heads; i++) {
         output_feats[i] = (float *) calloc(sizeof(float), msg_dim);
       }
-      label = (float *) calloc(sizeof(float), msg_dim);
+      label = (int *) calloc(sizeof(int), msg_dim);
     }
 
     void random_init() {
