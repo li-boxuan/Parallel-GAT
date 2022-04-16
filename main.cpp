@@ -1,7 +1,6 @@
 #include "sparse.h"
 #include "node.h"
 #include "gat.h"
-#include <cstdio>
 
 int main() {
   // load PPI graph adjacency matrix
@@ -11,10 +10,11 @@ int main() {
   int num_heads = 8;
   int msg_dim = 121;
 
-  // load PPI graph node features
+  // load PPI graph node features and labels
   std::ifstream in_feat("ppi_features.txt");
-  if (!in_feat) {
-    std::cout << "Cannot open ppi_features.txt\n";
+  std::ifstream in_label("ppi_labels.txt");
+  if (!in_feat || !in_label) {
+    std::cout << "Cannot load graph input\n";
     return 1;
   }
   node **nodes = (node **) calloc(sizeof(node *), num_nodes);;
@@ -22,6 +22,9 @@ int main() {
     nodes[i] = new node(feat_dim, num_heads, msg_dim);
     for (int j = 0; j < feat_dim; j++) {
       in_feat >> nodes[i]->input_feats[j];
+    }
+    for (int j = 0; j < msg_dim; j++) {
+      in_label >> nodes[i]->label[j];
     }
   }
 
