@@ -6,7 +6,7 @@
 
 class param_single_head {
 public:
-    float **W;
+    float **W; // [out_dim, in_dim]
     float *A1;
     float *A2;
     int in_dim;
