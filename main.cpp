@@ -79,6 +79,7 @@ int main() {
       }
     }
   }
+  std::cout <<"TP = " << TP << " FP = " << FP << " FN = " << FN << std::endl;
   float micro_f1_score = TP / (TP + 0.5 * (FP + FN));
   std::cout << "Micro F1 score = " << micro_f1_score << std::endl;
 
