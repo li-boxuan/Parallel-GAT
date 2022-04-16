@@ -4,23 +4,33 @@
 #include <cstdio>
 
 int main() {
+  // load PPI graph adjacency matrix
   sparse_matrix adj = sparse_matrix();
   int num_nodes = adj.num_rows;
   int feat_dim = 50;
   int num_heads = 8;
   int msg_dim = 121;
+
+  // load PPI graph node features
+  std::ifstream in_feat("ppi_features.txt");
+  if (!in_feat) {
+    std::cout << "Cannot open ppi_features.txt\n";
+    return 1;
+  }
   node **nodes = (node **) calloc(sizeof(node *), num_nodes);;
   for (int i = 0; i < num_nodes; i++) {
     nodes[i] = new node(feat_dim, num_heads, msg_dim);
-    nodes[i]->random_init();
+    for (int j = 0; j < feat_dim; j++) {
+      in_feat >> nodes[i]->input_feats[j];
+    }
   }
 
+  // load trained GAT model
   std::ifstream in("models/gat_ppi_model.txt");
   if (!in) {
     std::cout << "Cannot open models/gat_ppi_model.txt\n";
     return 1;
   }
-
   GAT gat_1 = GAT(num_nodes, num_heads, feat_dim, msg_dim);
   for (int i = 0; i < num_heads; i++) {
     for (int j = 0; j < msg_dim; j++) {
