@@ -1,4 +1,3 @@
-//#include <vector>
 #include <cstdlib>
 #include <cstdio>
 #include "node.h"
@@ -11,9 +10,9 @@
 
 float leaky_relu(float val) {
   if (val < 0.f) {
-    return 0.f;
+    return 0.2 * val;
   }
-  return 0.2f * val;
+  return val;
 }
 
 class GAT {
