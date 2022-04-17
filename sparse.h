@@ -34,7 +34,7 @@ public:
 //        delim[i] = delim_[i];
 //      }
 
-      std::string filename("ppi_adj.txt");
+      std::string filename("data/ppi_adj.txt");
       std::string line;
       std::stringstream ss;
       std::ifstream input_file(filename);

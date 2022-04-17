@@ -11,8 +11,8 @@ int main() {
   int msg_dim = 121;
 
   // load PPI graph node features and labels
-  std::ifstream in_feat("ppi_features.txt");
-  std::ifstream in_label("ppi_labels.txt");
+  std::ifstream in_feat("data/ppi_features.txt");
+  std::ifstream in_label("data/ppi_labels.txt");
   if (!in_feat || !in_label) {
     std::cout << "Cannot load graph input\n";
     return 1;

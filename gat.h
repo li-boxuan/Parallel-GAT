@@ -84,13 +84,9 @@ public:
             affinity_sum[j] += curr_affinity;
           }
           // out: nodes[j].output_feats[i]
-          if (i == 0 && j == 0) std::cout << "####### head = " << i << "########" << std::endl;
           for (int k = start_idx; k < end_idx; k++) {
             int neighbor_idx = adj->col_idx[k];
             float w = adj->vals[neighbor_idx] / (affinity_sum[j] + 1e-16);
-            if (i == 0 && j == 0) {
-                std::cout << "neighbor = " << neighbor_idx << " weight = " << w << std::endl;
-            }
             for (int v = 0; v < msg_dim; v++) {
               nodes[j]->output_feats[i][v] += w * nodes[neighbor_idx]->msgs[i][v];
             }
