@@ -60,8 +60,10 @@ public:
 //          }
         }
       }
-      for (int i = 0; i < num_heads; i++) {
 
+      // TODO: hard-code pre-calculated max attention for now
+      float max_attention = 40.7058;
+      for (int i = 0; i < num_heads; i++) {
         for (int j = 0; j < num_nodes; j++) {
           int start_idx = adj->delim[j];
           int end_idx = adj->delim[j + 1];
@@ -75,7 +77,9 @@ public:
             for (int v = 0; v < msg_dim; v++) {
               curr_affinity += nodes[neighbor_idx]->msgs[i][v] * params[i]->A2[v];
             }
-            curr_affinity = exp(leaky_relu(curr_affinity));
+            curr_affinity = leaky_relu(curr_affinity);
+            curr_affinity -= max_attention;
+            curr_affinity = exp(curr_affinity);
             adj->vals[neighbor_idx] = curr_affinity;
             affinity_sum[j] += curr_affinity;
           }
@@ -83,7 +87,7 @@ public:
           if (i == 0 && j == 0) std::cout << "####### head = " << i << "########" << std::endl;
           for (int k = start_idx; k < end_idx; k++) {
             int neighbor_idx = adj->col_idx[k];
-            float w = adj->vals[neighbor_idx] / affinity_sum[j];
+            float w = adj->vals[neighbor_idx] / (affinity_sum[j] + 1e-16);
             if (i == 0 && j == 0) {
                 std::cout << "neighbor = " << neighbor_idx << " weight = " << w << std::endl;
             }
