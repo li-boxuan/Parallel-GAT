@@ -60,7 +60,7 @@ public:
         for (int j = 0; j < num_nodes; j++) {
           for (int row_idx = 0; row_idx < msg_dim; row_idx++) {
             for (int col_idx = 0; col_idx < feat_dim; col_idx++) {
-              msgs[i][j][row_idx] += params[i]->W[row_idx][col_idx] * features->input_feats[i][col_idx];
+              msgs[i][j][row_idx] += params[i]->W[row_idx][col_idx] * features->input_feats[j][col_idx];
             }
           }
         }
