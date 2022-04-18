@@ -53,6 +53,31 @@ public:
       }
     }
 
+    void load_params(std::string filename) {
+      std::ifstream in(filename);
+      if (!in) {
+        std::cout << "Cannot open model file\n";
+        return;
+      }
+      for (int i = 0; i < num_heads; i++) {
+        for (int j = 0; j < msg_dim; j++) {
+          in >> params[i]->A2[j];
+        }
+      }
+      for (int i = 0; i < num_heads; i++) {
+        for (int j = 0; j < msg_dim; j++) {
+          in >> params[i]->A1[j];
+        }
+      }
+      for (int i = 0; i < num_heads; i++) {
+        for (int k = 0; k < msg_dim; k++) {
+          for (int j = 0; j < feat_dim; j++) {
+            in >> params[i]->W[k][j];
+          }
+        }
+      }
+      in.close();
+    }
 
     void forward(Nodes *features, sparse_matrix *adj) {
       // prepare messages
