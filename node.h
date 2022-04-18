@@ -57,6 +57,7 @@ public:
       for (int i = 0; i < num_nodes; i++) {
         free(input_feats[i]);
       }
+      free(input_feats);
       for (int i = 0; i < num_nodes; i++) {
         free(output_feats[i]);
       }
