@@ -4,6 +4,7 @@
 #include "param.h"
 #include "sparse.h"
 #include <math.h>
+#include <random>
 
 #ifndef PROJ_GAT_H
 #define PROJ_GAT_H
@@ -15,6 +16,10 @@ float leaky_relu(float val) {
   return val;
 }
 
+float identity(float val) {
+  return val;
+}
+
 class GAT {
 public:
     int num_nodes;
@@ -22,7 +27,8 @@ public:
     int feat_dim;
     int msg_dim;  // per head
     param_single_head **params;
-    float *affinity_sum;
+    float *affinity_sum;  // (num_nodes, )
+    float ***msgs;  // (num_heads, num_nodes, msg_dim)
 
     /**
      *
@@ -38,29 +44,27 @@ public:
         params[i] = new param_single_head(feat_dim, msg_dim);
       }
       affinity_sum = (float *) calloc(sizeof(float), num_nodes);
+      msgs = (float ***) calloc(sizeof(float **), num_heads);
+      for (int i = 0; i < num_heads; i++) {
+        msgs[i] = (float **) calloc(sizeof(float *), num_nodes);
+        for (int j = 0; j < num_nodes; j++) {
+          msgs[i][j] = (float *) calloc(sizeof(float), msg_dim);
+        }
+      }
     }
 
 
-    void forward(node **nodes, sparse_matrix *adj) {
+    void forward(Nodes *features, sparse_matrix *adj) {
       // prepare messages
-      for (int i = 0; i < num_nodes; i++) {
-        for (int j = 0; j < num_heads; j++) {
+      for (int i = 0; i < num_heads; i++) {
+        for (int j = 0; j < num_nodes; j++) {
           for (int row_idx = 0; row_idx < msg_dim; row_idx++) {
             for (int col_idx = 0; col_idx < feat_dim; col_idx++) {
-              nodes[i]->msgs[j][row_idx] += params[j]->W[row_idx][col_idx] *
-                                            nodes[i]->input_feats[col_idx];
+              msgs[i][j][row_idx] += params[i]->W[row_idx][col_idx] * features->input_feats[i][col_idx];
             }
           }
-//          if (i == 1 && j == 1) {
-//              std::cout << "After linear projection, node 1 head 1 is:" << std::endl;
-//              for (int k = 0; k < msg_dim; k++) {
-//                  std::cout << nodes[i]->msgs[j][k] << " ";
-//              }
-//              std::cout << std::endl;
-//          }
         }
       }
-
       // TODO: hard-code pre-calculated max attention for now
       float max_attention = 40.7058;
       for (int i = 0; i < num_heads; i++) {
@@ -72,10 +76,10 @@ public:
             int neighbor_idx = adj->col_idx[k];
             float curr_affinity = 0.f;
             for (int v = 0; v < msg_dim; v++) {
-              curr_affinity += nodes[j]->msgs[i][v] * params[i]->A1[v];
+              curr_affinity += msgs[i][j][v] * params[i]->A1[v];
             }
             for (int v = 0; v < msg_dim; v++) {
-              curr_affinity += nodes[neighbor_idx]->msgs[i][v] * params[i]->A2[v];
+              curr_affinity += msgs[i][neighbor_idx][v] * params[i]->A2[v];
             }
             curr_affinity = leaky_relu(curr_affinity);
             curr_affinity -= max_attention;
@@ -88,13 +92,10 @@ public:
             int neighbor_idx = adj->col_idx[k];
             float w = adj->vals[neighbor_idx] / (affinity_sum[j] + 1e-16);
             for (int v = 0; v < msg_dim; v++) {
-              nodes[j]->output_feats[i][v] += w * nodes[neighbor_idx]->msgs[i][v];
+              features->output_feats[j][i * msg_dim + v] += w * msgs[i][neighbor_idx][v];
             }
           }
         }
-      }
-      for (int i = 0; i < num_nodes; i++) {
-        nodes[i]->flush();
       }
     }
 
@@ -104,6 +105,13 @@ public:
       }
       free(params);
       free(affinity_sum);
+      for (int i = 0; i < num_heads; i++) {
+        for (int j = 0; j < num_nodes; j++) {
+          free(msgs[i][j]);
+        }
+        free(msgs[i]);
+      }
+      free(msgs);
     }
 
     void random_init() {
@@ -112,6 +120,62 @@ public:
       }
     }
 
+};
+
+class FC {
+public:
+    int num_nodes;
+    int input_dim;
+    int output_dim;
+    float **W;
+    float *b;
+
+    float (*activation)(float);
+
+    FC(int n_node, int in_dim, int out_dim, int activate) : num_nodes(n_node), input_dim(in_dim), output_dim(out_dim) {
+      W = (float **) calloc(sizeof(float *), output_dim);
+      for (int i = 0; i < output_dim; i++) {
+        W[i] = (float *) calloc(sizeof(float), input_dim);
+      }
+      b = (float *) calloc(sizeof(float), output_dim);
+      if (activate == 0) {
+        activation = &identity;
+      } else {
+        activation = &leaky_relu;
+      }
+    }
+
+    void random_init() {
+      std::default_random_engine generator;
+      std::normal_distribution<float> distribution(0.f, 0.1f);
+      for (int i = 0; i < output_dim; i++) {
+        for (int j = 0; j < input_dim; j++) {
+          W[i][j] = distribution(generator);
+        }
+      }
+      for (int i = 0; i < output_dim; i++) {
+        b[i] = distribution(generator);
+      }
+    }
+
+    void forward(Nodes *features) {
+      for (int i = 0; i < num_nodes; i++) {
+        for (int row_idx = 0; row_idx < output_dim; row_idx++) {
+          for (int col_idx = 0; col_idx < input_dim; col_idx++) {
+            features->output_feats[i][row_idx] += W[row_idx][col_idx] * features->input_feats[i][col_idx];
+          }
+          features->output_feats[i][row_idx] = activation(features->output_feats[i][row_idx] + b[row_idx]);
+        }
+      }
+    }
+
+    ~FC() {
+      for (int i = 0; i < output_dim; i++) {
+        free(W[i]);
+      }
+      free(W);
+      free(b);
+    }
 };
 
 #endif //PROJ_GAT_H

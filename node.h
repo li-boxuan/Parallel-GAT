@@ -5,65 +5,62 @@
 #ifndef PROJ_NODE_H
 #define PROJ_NODE_H
 
-class node {
+class Nodes {
 public:
-    int feat_dim;
-    int num_heads;
-    int msg_dim;
-    float *input_feats;  // feat_dim
-    float **msgs;  // (num_heads, msg_dim)
-    float **output_feats;  // (num_heads, msg_dim)
+    int input_dim;
+    int output_dim;
+    int num_nodes;
+    float **input_feats;
+    float **output_feats;
 
-    // for testing purpose
-    int *label; // msg_dim
-
-    node(int n_feats, int n_heads, int message_dim) : feat_dim(n_feats), num_heads(n_heads),
-                                                      msg_dim(message_dim) {
-      input_feats = (float *) calloc(sizeof(float), n_feats);
-      msgs = (float **) calloc(sizeof(float *), num_heads);
-      for (int i = 0; i < num_heads; i++) {
-        msgs[i] = (float *) calloc(sizeof(float), msg_dim);
+    Nodes(int n_node, int in_dim, int out_dim) : input_dim(in_dim), output_dim(out_dim), num_nodes(n_node) {
+      input_feats = (float **) calloc(sizeof(float *), num_nodes);
+      for (int i = 0; i < num_nodes; i++) {
+        input_feats[i] = (float *) calloc(sizeof(float), input_dim);
       }
-      output_feats = (float **) calloc(sizeof(float *), num_heads);
-      for (int i = 0; i < num_heads; i++) {
-        output_feats[i] = (float *) calloc(sizeof(float), msg_dim);
+      output_feats = (float **) calloc(sizeof(float *), num_nodes);
+      for (int i = 0; i < num_nodes; i++) {
+        output_feats[i] = (float *) calloc(sizeof(float), output_dim);
       }
-      label = (int *) calloc(sizeof(int), msg_dim);
     }
 
     void random_init() {
       std::default_random_engine generator;
       std::normal_distribution<float> distribution(0.f, 0.1f);
-      for (int i = 0; i < feat_dim; i++) {
-        input_feats[i] = distribution(generator);
+      for (int i = 0; i < num_nodes; i++) {
+        for (int j = 0; j < input_dim; j++) {
+          input_feats[i][j] = distribution(generator);
+        }
+      }
+      for (int i = 0; i < num_nodes; i++) {
+        for (int j = 0; j < output_dim; j++) {
+          output_feats[i][j] = distribution(generator);
+        }
       }
     }
 
-    void flush() {
-//      float **tmp = input_feats;
-//      input_feats = output_feats;
-//      output_feats = tmp;
-//      zero_out();
-    }
-//
-//    void zero_out() {
-//      for (int i = 0; i < num_heads; i++) {
-//        for (int j = 0; j < msg_dim; j++)
-//          output_feats[i][j] = 0.f;
-//      }
-//    }
-
-    ~node() {
-      free(input_feats);
-      for (int i = 0; i < num_heads; i++) {
-        free(msgs[i]);
+    void flush(int new_output_dim) {
+      float **tmp = input_feats;
+      input_feats = output_feats;
+      output_feats = tmp;
+      input_dim = output_dim;
+      for (int i = 0; i < num_nodes; i++) {
+        free(output_feats[i]);
       }
-      free(msgs);
-      for (int i = 0; i < num_heads; i++) {
+      output_dim = new_output_dim;
+      for (int i = 0; i < num_nodes; i++) {
+        output_feats[i] = (float *) calloc(sizeof(float), output_dim);
+      }
+    }
+
+    ~Nodes() {
+      for (int i = 0; i < num_nodes; i++) {
+        free(input_feats[i]);
+      }
+      for (int i = 0; i < num_nodes; i++) {
         free(output_feats[i]);
       }
       free(output_feats);
-      free(label);
     }
 };
 
