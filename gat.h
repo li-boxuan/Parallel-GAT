@@ -90,8 +90,8 @@ public:
           }
         }
       }
-      // TODO: hard-code pre-calculated max attention for now
-      float max_attention = 40.7058;
+      // TODO: subtract max attention
+      float max_attention = 0;
       for (int i = 0; i < num_heads; i++) {
         for (int j = 0; j < num_nodes; j++) {
           int start_idx = adj->delim[j];
@@ -119,6 +119,20 @@ public:
             for (int v = 0; v < msg_dim; v++) {
               features->output_feats[j][i * msg_dim + v] += w * msgs[i][neighbor_idx][v];
             }
+          }
+        }
+      }
+    }
+
+    /**
+     * Activate output features
+     */
+    void activate(Nodes *features) {
+      for (int i = 0; i < num_nodes; i++) {
+        for (int j = 0; j < num_heads * msg_dim; j++) {
+          float val = features->output_feats[i][j];
+          if (val <= 0) {
+            features->output_feats[i][j] = exp(val) - 1;
           }
         }
       }

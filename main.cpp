@@ -19,6 +19,7 @@ int runPPIGraph() {
   GAT gat_1 = GAT(num_nodes, num_heads, in_dim, msg_dim);
   gat_1.load_params("models/gat_ppi_model_layer1.txt");
   gat_1.forward(inputs_ptr, &adj);
+  gat_1.activate(inputs_ptr);
 
   num_heads = 4;
   msg_dim = 64;
@@ -27,6 +28,7 @@ int runPPIGraph() {
   GAT gat_2 = GAT(num_nodes, num_heads, out_dim, msg_dim);
   gat_2.load_params("models/gat_ppi_model_layer2.txt");
   gat_2.forward(inputs_ptr, &adj);
+  gat_2.activate(inputs_ptr);
 
   num_heads = 6;
   msg_dim = 121;
