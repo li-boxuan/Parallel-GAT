@@ -76,6 +76,13 @@ public:
           }
         }
       }
+      for (int i = 0; i < num_heads; i++) {
+        for (int k = 0; k < msg_dim; k++) {
+          for (int j = 0; j < feat_dim; j++) {
+            in >> params[i]->S[k][j];
+          }
+        }
+      }
       in.close();
     }
 
@@ -118,6 +125,26 @@ public:
             float w = adj->vals[neighbor_idx] / (affinity_sum[j] + 1e-16);
             for (int v = 0; v < msg_dim; v++) {
               features->output_feats[j][i * msg_dim + v] += w * msgs[i][neighbor_idx][v];
+            }
+          }
+        }
+      }
+      // Add skip or residual connection
+      if (feat_dim == msg_dim) {
+        for (int i = 0; i < num_heads; i++) {
+          for (int j = 0; j < num_nodes; j++) {
+            for (int v = 0; v < msg_dim; v++) {
+              features->output_feats[j][i * msg_dim + v] += features->input_feats[j][v];
+            }
+          }
+        }
+      } else {
+        for (int i = 0; i < num_heads; i++) {
+          for (int j = 0; j < num_nodes; j++) {
+            for (int row_idx = 0; row_idx < msg_dim; row_idx++) {
+              for (int col_idx = 0; col_idx < feat_dim; col_idx++) {
+                features->output_feats[j][i * msg_dim + row_idx] += params[i]->S[row_idx][col_idx] * features->input_feats[j][col_idx];
+              }
             }
           }
         }

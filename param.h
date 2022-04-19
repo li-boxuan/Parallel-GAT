@@ -7,6 +7,7 @@
 class param_single_head {
 public:
     float **W; // [out_dim, in_dim]
+    float **S; // [out_dim, in_dim]
     float *A1;
     float *A2;
     int in_dim;
@@ -18,6 +19,10 @@ public:
       for (int i = 0; i < out_dim; i++) {
         W[i] = (float *) calloc(sizeof(float), in_dim);
       }
+      S = (float **) calloc(sizeof(float *), out_dim);
+      for (int i = 0; i < out_dim; i++) {
+        S[i] = (float *) calloc(sizeof(float), in_dim);
+      }
       A1 = (float *) calloc(sizeof(float), out_dim);
       A2 = (float *) calloc(sizeof(float), out_dim);
     };
@@ -25,8 +30,10 @@ public:
     ~param_single_head() {
       for (int i = 0; i < out_dim; i++) {
         free(W[i]);
+        free(S[i]);
       }
       free(W);
+      free(S);
       free(A1);
       free(A2);
     }
