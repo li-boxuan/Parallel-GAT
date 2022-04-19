@@ -21,20 +21,22 @@ int runPPIGraph() {
   gat_1.forward(inputs_ptr, &adj);
   gat_1.activate(inputs_ptr);
 
+  in_dim = out_dim;
   num_heads = 4;
   msg_dim = 64;
   out_dim = num_heads * msg_dim;
-  inputs_ptr->flush(num_heads * msg_dim);
-  GAT gat_2 = GAT(num_nodes, num_heads, out_dim, msg_dim);
+  inputs_ptr->flush(out_dim);
+  GAT gat_2 = GAT(num_nodes, num_heads, in_dim, msg_dim);
   gat_2.load_params("models/gat_ppi_model_layer2.txt");
   gat_2.forward(inputs_ptr, &adj);
   gat_2.activate(inputs_ptr);
 
+  in_dim = out_dim;
   num_heads = 6;
   msg_dim = 121;
   out_dim = num_heads * msg_dim;
-  inputs_ptr->flush(num_heads * msg_dim);
-  GAT gat_3 = GAT(num_nodes, num_heads, out_dim, msg_dim);
+  inputs_ptr->flush(out_dim);
+  GAT gat_3 = GAT(num_nodes, num_heads, in_dim, msg_dim);
   gat_3.load_params("models/gat_ppi_model_layer3.txt");
   gat_3.forward(inputs_ptr, &adj);
 
