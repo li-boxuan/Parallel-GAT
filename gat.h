@@ -97,8 +97,28 @@ public:
           }
         }
       }
-      // TODO: subtract max attention
+
+      // find max attention
       float max_attention = 0;
+      for (int i = 0; i < num_heads; i++) {
+        for (int j = 0; j < num_nodes; j++) {
+          int start_idx = adj->delim[j];
+          int end_idx = adj->delim[j + 1];
+          for (int k = start_idx; k < end_idx; k++) {
+            int neighbor_idx = adj->col_idx[k];
+            float curr_affinity = 0.f;
+            for (int v = 0; v < msg_dim; v++) {
+              curr_affinity += msgs[i][j][v] * params[i]->A1[v];
+            }
+            for (int v = 0; v < msg_dim; v++) {
+              curr_affinity += msgs[i][neighbor_idx][v] * params[i]->A2[v];
+            }
+            curr_affinity = leaky_relu(curr_affinity);
+            max_attention = std::max(max_attention, curr_affinity);
+          }
+        }
+      }
+
       for (int i = 0; i < num_heads; i++) {
         for (int j = 0; j < num_nodes; j++) {
           int start_idx = adj->delim[j];
@@ -114,6 +134,7 @@ public:
               curr_affinity += msgs[i][neighbor_idx][v] * params[i]->A2[v];
             }
             curr_affinity = leaky_relu(curr_affinity);
+            // subtract max attention for numerical stability
             curr_affinity -= max_attention;
             curr_affinity = exp(curr_affinity);
             adj->vals[neighbor_idx] = curr_affinity;
