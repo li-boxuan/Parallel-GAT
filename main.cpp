@@ -47,7 +47,7 @@ int runPPIGraph() {
     for (int j = 0; j < msg_dim; j++) {
       float output = 0.0f;
       for (int k = 0; k < num_heads; k++) {
-        output += inputs_ptr->output_feats[i][j * num_heads + k];
+        output += inputs_ptr->output_feats[i][k * msg_dim + j];
       }
       int pred = output >= 0 ? 1 : 0;
       int label = inputs_ptr->labels[i][j];
