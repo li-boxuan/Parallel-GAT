@@ -32,7 +32,7 @@ public:
     }
 
     void load_labels(std::string label_file) {
-      std::ifstream in_label("data/ppi_labels.txt");
+      std::ifstream in_label("../data/ppi_labels.txt");
       if (!in_label) {
         std::cout << "Cannot load node labels\n";
         return;

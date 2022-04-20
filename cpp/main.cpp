@@ -13,11 +13,11 @@ int runPPIGraph() {
   int out_dim = num_heads * msg_dim;
   Nodes inputs = Nodes(num_nodes, in_dim, out_dim, 121);
   Nodes *inputs_ptr = &inputs;
-  inputs_ptr->load_input_features("data/ppi_features.txt");
-  inputs_ptr->load_labels("data/ppi_labels.txt");
+  inputs_ptr->load_input_features("../data/ppi_features.txt");
+  inputs_ptr->load_labels("../data/ppi_labels.txt");
 
   GAT gat_1 = GAT(num_nodes, num_heads, in_dim, msg_dim);
-  gat_1.load_params("models/gat_ppi_model_layer1.txt");
+  gat_1.load_params("../models/gat_ppi_model_layer1.txt");
   gat_1.forward(inputs_ptr, &adj);
   gat_1.activate(inputs_ptr);
 
@@ -27,7 +27,7 @@ int runPPIGraph() {
   out_dim = num_heads * msg_dim;
   inputs_ptr->flush(out_dim);
   GAT gat_2 = GAT(num_nodes, num_heads, in_dim, msg_dim);
-  gat_2.load_params("models/gat_ppi_model_layer2.txt");
+  gat_2.load_params("../models/gat_ppi_model_layer2.txt");
   gat_2.forward(inputs_ptr, &adj);
   gat_2.activate(inputs_ptr);
 
@@ -37,7 +37,7 @@ int runPPIGraph() {
   out_dim = num_heads * msg_dim;
   inputs_ptr->flush(out_dim);
   GAT gat_3 = GAT(num_nodes, num_heads, in_dim, msg_dim);
-  gat_3.load_params("models/gat_ppi_model_layer3.txt");
+  gat_3.load_params("../models/gat_ppi_model_layer3.txt");
   gat_3.forward(inputs_ptr, &adj);
 
   // Predict and calculate micro-F1 score
