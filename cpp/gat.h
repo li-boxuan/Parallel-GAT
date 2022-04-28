@@ -6,6 +6,10 @@
 #include <math.h>
 #include <random>
 
+#ifdef USEOPENMP
+#include <omp.h>
+#endif
+
 #ifndef PROJ_GAT_H
 #define PROJ_GAT_H
 
@@ -88,6 +92,7 @@ public:
 
     void forward(Nodes *features, sparse_matrix *adj) {
       // prepare messages
+#pragma omp parallel for
       for (int i = 0; i < num_heads; i++) {
         for (int j = 0; j < num_nodes; j++) {
           for (int row_idx = 0; row_idx < msg_dim; row_idx++) {
@@ -100,6 +105,7 @@ public:
 
       // find max attention
       float max_attention = 0;
+#pragma omp parallel for
       for (int i = 0; i < num_heads; i++) {
         for (int j = 0; j < num_nodes; j++) {
           int start_idx = adj->delim[j];
@@ -119,6 +125,7 @@ public:
         }
       }
 
+#pragma omp parallel for
       for (int i = 0; i < num_heads; i++) {
         for (int j = 0; j < num_nodes; j++) {
           int start_idx = adj->delim[j];
@@ -176,6 +183,7 @@ public:
      * Activate output features
      */
     void activate(Nodes *features) {
+#pragma omp parallel for
       for (int i = 0; i < num_nodes; i++) {
         for (int j = 0; j < num_heads * msg_dim; j++) {
           float val = features->output_feats[i][j];
