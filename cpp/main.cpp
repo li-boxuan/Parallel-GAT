@@ -3,6 +3,10 @@
 #include "gat.h"
 
 int runPPIGraph() {
+  using namespace std::chrono;
+  typedef std::chrono::high_resolution_clock Clock;
+  typedef std::chrono::duration<double> dsec;
+
   // load PPI graph adjacency matrix
   sparse_matrix adj = sparse_matrix();
   int num_nodes = adj.num_rows;
@@ -18,8 +22,12 @@ int runPPIGraph() {
 
   GAT gat_1 = GAT(num_nodes, num_heads, in_dim, msg_dim);
   gat_1.load_params("../models/gat_ppi_model_layer1.txt");
+
+  auto start = Clock::now();
+  double duration = 0;
   gat_1.forward(inputs_ptr, &adj);
   gat_1.activate(inputs_ptr);
+  duration += duration_cast<dsec>(Clock::now() - start).count();
 
   in_dim = out_dim;
   num_heads = 4;
@@ -28,8 +36,11 @@ int runPPIGraph() {
   inputs_ptr->flush(out_dim);
   GAT gat_2 = GAT(num_nodes, num_heads, in_dim, msg_dim);
   gat_2.load_params("../models/gat_ppi_model_layer2.txt");
+
+  start = Clock::now();
   gat_2.forward(inputs_ptr, &adj);
   gat_2.activate(inputs_ptr);
+  duration += duration_cast<dsec>(Clock::now() - start).count();
 
   in_dim = out_dim;
   num_heads = 6;
@@ -38,6 +49,8 @@ int runPPIGraph() {
   inputs_ptr->flush(out_dim);
   GAT gat_3 = GAT(num_nodes, num_heads, in_dim, msg_dim);
   gat_3.load_params("../models/gat_ppi_model_layer3.txt");
+
+  start = Clock::now();
   gat_3.forward(inputs_ptr, &adj);
 
   // Predict and calculate micro-F1 score
@@ -64,15 +77,12 @@ int runPPIGraph() {
       }
     }
   }
+  duration += duration_cast<dsec>(Clock::now() - start).count();
   std::cout <<"TP = " << TP << " FP = " << FP << " FN = " << FN << std::endl;
   float micro_f1_score = TP / (TP + 0.5 * (FP + FN));
   std::cout << "Micro F1 score = " << micro_f1_score << std::endl;
 
-//  int fc_input_dim = 100;
-//  int fc_output_dim = 50;
-//  inputs_ptr->flush(fc_input_dim);
-//  FC fc = FC(num_nodes, fc_input_dim, fc_output_dim, 1);
-//  fc.forward(inputs_ptr);
+  std::cout << "Total elapsed time (sec) = " << duration << std::endl;
   return 0;
 }
 

@@ -6,6 +6,10 @@
 #include <math.h>
 #include <random>
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 #ifndef PROJ_GAT_H
 #define PROJ_GAT_H
 
@@ -88,6 +92,7 @@ public:
 
     void forward(Nodes *features, sparse_matrix *adj) {
       // prepare messages
+#pragma omp parallel for
       for (int i = 0; i < num_heads; i++) {
         for (int j = 0; j < num_nodes; j++) {
           for (int row_idx = 0; row_idx < msg_dim; row_idx++) {
