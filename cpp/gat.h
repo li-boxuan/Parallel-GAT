@@ -120,12 +120,12 @@ public:
               curr_affinity += msgs[i][neighbor_idx][v] * params[i]->A2[v];
             }
             curr_affinity = leaky_relu(curr_affinity);
+#pragma omp critical
             max_attention = std::max(max_attention, curr_affinity);
           }
         }
       }
 
-#pragma omp parallel for
       for (int i = 0; i < num_heads; i++) {
         for (int j = 0; j < num_nodes; j++) {
           int start_idx = adj->delim[j];
