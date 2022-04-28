@@ -1,6 +1,7 @@
 #include "sparse.h"
 #include "node.h"
 #include "gat.h"
+#include <chrono>
 
 int runPPIGraph() {
   using namespace std::chrono;

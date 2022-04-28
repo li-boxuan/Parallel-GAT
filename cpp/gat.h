@@ -6,7 +6,7 @@
 #include <math.h>
 #include <random>
 
-#ifdef _OPENMP
+#ifdef USEOPENMP
 #include <omp.h>
 #endif
 
@@ -92,7 +92,9 @@ public:
 
     void forward(Nodes *features, sparse_matrix *adj) {
       // prepare messages
+#ifdef USEOPENMP
 #pragma omp parallel for
+#endif
       for (int i = 0; i < num_heads; i++) {
         for (int j = 0; j < num_nodes; j++) {
           for (int row_idx = 0; row_idx < msg_dim; row_idx++) {
