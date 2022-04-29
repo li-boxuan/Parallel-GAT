@@ -33,6 +33,8 @@ public:
     param_single_head **params;
     float *affinity_sum;  // (num_nodes, )
     float ***msgs;  // (num_heads, num_nodes, msg_dim)
+    float **heats_1;  // (num_heads, num_nodes)
+    float **heats_2;  // (num_heads, num_nodes)
 
     /**
      *
@@ -54,6 +56,14 @@ public:
         for (int j = 0; j < num_nodes; j++) {
           msgs[i][j] = (float *) calloc(sizeof(float), msg_dim);
         }
+      }
+      heats_1 = (float **) calloc(sizeof(float *), num_heads);
+      for (int i = 0; i < num_heads; i++) {
+        heats_1[i] = (float *) calloc(sizeof(float), num_nodes);
+      }
+      heats_2 = (float **) calloc(sizeof(float *), num_heads);
+      for (int i = 0; i < num_heads; i++) {
+        heats_2[i] = (float *) calloc(sizeof(float), num_nodes);
       }
     }
 
@@ -103,26 +113,16 @@ public:
         }
       }
 
-      // find max attention
-      float max_attention = 0;
-#pragma omp parallel for
       for (int i = 0; i < num_heads; i++) {
         for (int j = 0; j < num_nodes; j++) {
-          int start_idx = adj->delim[j];
-          int end_idx = adj->delim[j + 1];
-          for (int k = start_idx; k < end_idx; k++) {
-            int neighbor_idx = adj->col_idx[k];
-            float curr_affinity = 0.f;
-            for (int v = 0; v < msg_dim; v++) {
-              curr_affinity += msgs[i][j][v] * params[i]->A1[v];
-            }
-            for (int v = 0; v < msg_dim; v++) {
-              curr_affinity += msgs[i][neighbor_idx][v] * params[i]->A2[v];
-            }
-            curr_affinity = leaky_relu(curr_affinity);
-#pragma omp critical
-            max_attention = std::max(max_attention, curr_affinity);
+          float heat_1 = 0.f;
+          float heat_2 = 0.f;
+          for (int v = 0; v < msg_dim; v++) {
+            heat_1 += msgs[i][j][v] * params[i]->A1[v];
+            heat_2 += msgs[i][j][v] * params[i]->A2[v];
           }
+          heats_1[i][j] = heat_1;
+          heats_2[i][j] = heat_2;
         }
       }
 
@@ -131,22 +131,24 @@ public:
           int start_idx = adj->delim[j];
           int end_idx = adj->delim[j + 1];
           affinity_sum[j] = 0.f;
+          float max_attention = -std::numeric_limits<float>::max();
           for (int k = start_idx; k < end_idx; k++) {
             int neighbor_idx = adj->col_idx[k];
-            float curr_affinity = 0.f;
-            for (int v = 0; v < msg_dim; v++) {
-              curr_affinity += msgs[i][j][v] * params[i]->A1[v];
-            }
-            for (int v = 0; v < msg_dim; v++) {
-              curr_affinity += msgs[i][neighbor_idx][v] * params[i]->A2[v];
-            }
+            float curr_affinity = heats_1[i][j] + heats_2[i][neighbor_idx];
             curr_affinity = leaky_relu(curr_affinity);
             // subtract max attention for numerical stability
-            curr_affinity -= max_attention;
+            max_attention = std::max(max_attention, curr_affinity);
+          }
+          for (int k = start_idx; k < end_idx; k++) {
+            int neighbor_idx = adj->col_idx[k];
+            float curr_affinity = heats_1[i][j] + heats_2[i][neighbor_idx];
+            curr_affinity = leaky_relu(curr_affinity) - max_attention;
             curr_affinity = exp(curr_affinity);
             adj->vals[neighbor_idx] = curr_affinity;
             affinity_sum[j] += curr_affinity;
+
           }
+
           // out: nodes[j].output_feats[i]
           for (int k = start_idx; k < end_idx; k++) {
             int neighbor_idx = adj->col_idx[k];
@@ -207,6 +209,14 @@ public:
         free(msgs[i]);
       }
       free(msgs);
+      for (int i = 0; i < num_heads; i++) {
+        free(heats_1[i]);
+      }
+      free(heats_1);
+      for (int i = 0; i < num_heads; i++) {
+        free(heats_2[i]);
+      }
+      free(heats_2);
     }
 
     void random_init() {
