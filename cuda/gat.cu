@@ -10,15 +10,15 @@
 
 #define TILE_WIDTH 32
 #define TILE_SIZE (TILE_WIDTH * TILE_WIDTH)
-
+#define RM(r, c, width) ((r) * (width) + (c))
 
 __global__ void mm_kernel(int m, int p, int n, float *device_A, float *device_B, float *device_C) {
   // (m, p) * (p, n)
   // blockDim.y == blockDim.x == TILE_WIDTH
-  int row_start = blockDim.x * blockIdx.x;
-  int col_start = blockDim.y * blockIdx.y;
-  int row_offset = threadIdx.x;
-  int col_offset = threadIdx.y;
+  int row_start = blockDim.y * blockIdx.y;
+  int col_start = blockDim.y * blockIdx.x;
+  int row_offset = threadIdx.y;
+  int col_offset = threadIdx.x;
   float res = 0.f;
   __shared__ float A[TILE_WIDTH * TILE_WIDTH];
   __shared__ float B[TILE_WIDTH * TILE_WIDTH];
@@ -174,7 +174,10 @@ void gatForwardCUDA(float *W, float *A, float *input_feats, sparse_matrix *adj, 
   mm_kernel<<<blocks, threadsPerBlock>>>(num_nodes, in_dim, num_heads * out_dim, device_input_feats, device_W,
                                          device_msgs);
   cudaDeviceSynchronize();
-
+//  double endTime = CycleTimer::currentSeconds();
+//  double overallDuration = endTime - startTime;
+////  printf("Kernel invocation: %.3f ms\t\t[%.3f GB/s]\n", 1000.f * kernelDuration, toBW(totalBytes, kernelDuration));
+//  printf("Overall: %.3f ms\n", 1000.f * overallDuration);
 //  float *test_msgs;
 //  test_msgs = new float[num_nodes * num_heads * out_dim];
 //  cudaMemcpy(test_msgs, device_msgs, num_nodes * num_heads * out_dim * sizeof(float), cudaMemcpyDeviceToHost);
