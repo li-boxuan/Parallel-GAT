@@ -171,9 +171,14 @@ void gatForwardCUDA(float *W, float *A, float *input_feats, sparse_matrix *adj, 
 
   dim3 threadsPerBlock = dim3(TILE_WIDTH, TILE_WIDTH);
   dim3 blocks = dim3((num_nodes + TILE_WIDTH - 1) / TILE_WIDTH, out_dim * num_heads + TILE_WIDTH - 1 / TILE_WIDTH);
+  double kernelStartTime = CycleTimer::currentSeconds();
   mm_kernel<<<blocks, threadsPerBlock>>>(num_nodes, in_dim, num_heads * out_dim, device_input_feats, device_W,
                                          device_msgs);
   cudaDeviceSynchronize();
+  double kernelEndTime = CycleTimer::currentSeconds();
+  double kernelDuration = kernelEndTime - kernelStartTime;
+  printf("Kernel invocation: %.3f ms\n", 1000.f * kernelDuration);
+
 //  double endTime = CycleTimer::currentSeconds();
 //  double overallDuration = endTime - startTime;
 ////  printf("Kernel invocation: %.3f ms\t\t[%.3f GB/s]\n", 1000.f * kernelDuration, toBW(totalBytes, kernelDuration));
@@ -196,9 +201,13 @@ void gatForwardCUDA(float *W, float *A, float *input_feats, sparse_matrix *adj, 
   threadsPerBlock = dim3(2, TILE_WIDTH);
   blocks = dim3(num_heads, (num_nodes + TILE_WIDTH - 1) / TILE_WIDTH);
 
+  kernelStartTime = CycleTimer::currentSeconds();
   heat_kernel<<<blocks, threadsPerBlock, 2 * out_dim * sizeof(float)>>>(num_nodes, num_heads, out_dim, device_msgs,
                                                                         device_A, device_heats);
   cudaDeviceSynchronize();
+  kernelEndTime = CycleTimer::currentSeconds();
+  kernelDuration = kernelEndTime - kernelStartTime;
+  printf("Kernel invocation: %.3f ms\n", 1000.f * kernelDuration);
 
 //  float *test_heats;
 //  test_heats = new float[num_heads * 2 * num_nodes];
@@ -222,9 +231,13 @@ void gatForwardCUDA(float *W, float *A, float *input_feats, sparse_matrix *adj, 
   threadsPerBlock = dim3(TILE_SIZE);
   blocks = dim3(num_heads, (num_nodes + TILE_SIZE - 1) / TILE_SIZE);
 
+  kernelStartTime = CycleTimer::currentSeconds();
   attn_kernel<<<blocks, threadsPerBlock>>>(num_nodes, adj->num_elements,
                                            device_col_idx, device_delim, device_heats, device_attn, min_f);
   cudaDeviceSynchronize();
+  kernelEndTime = CycleTimer::currentSeconds();
+  kernelDuration = kernelEndTime - kernelStartTime;
+  printf("Kernel invocation: %.3f ms\n", 1000.f * kernelDuration);
 
 
 //  float *test_attn;
@@ -239,10 +252,15 @@ void gatForwardCUDA(float *W, float *A, float *input_feats, sparse_matrix *adj, 
 
   threadsPerBlock = dim3(TILE_SIZE);
   blocks = dim3(num_heads, (num_nodes * out_dim + TILE_SIZE - 1) / TILE_SIZE);
+
+  kernelStartTime = CycleTimer::currentSeconds();
   aggregate_kernel<<<blocks, threadsPerBlock>>>(num_nodes, num_heads, out_dim, adj->num_elements,
                                                 device_msgs, device_attn, device_col_idx, device_delim,
                                                 device_output_feats);
   cudaDeviceSynchronize();
+  kernelEndTime = CycleTimer::currentSeconds();
+  kernelDuration = kernelEndTime - kernelStartTime;
+  printf("Kernel invocation: %.3f ms\n", 1000.f * kernelDuration);
 
 //  float *test_output_feats;
 //  test_output_feats = new float[num_nodes * num_heads * out_dim];

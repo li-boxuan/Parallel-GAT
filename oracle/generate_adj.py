@@ -3,8 +3,8 @@ import numpy as np
 
 def main():
     np.random.seed(0)
-    num_nodes = 400
-    connected_pctg = 0.1
+    num_nodes = 5000
+    connected_pctg = 0.01
     num_potential_edges = num_nodes * (num_nodes - 1) // 2
     mask = np.random.binomial(n=1, p=connected_pctg, size=num_potential_edges)
     adj_matrix = np.zeros((num_nodes, num_nodes), dtype=int)
@@ -29,7 +29,7 @@ def main():
                 elem_cnt += 1
         delim.append(elem_cnt)
 
-    with open("data/adj.txt", "w") as fin:
+    with open("data/generated/5000.1e-2.adj.txt", "w") as fin:
         fin.write(f"{num_nodes} {elem_cnt}\n")
         for i, item in enumerate(col_idx):
             if i != elem_cnt - 1:

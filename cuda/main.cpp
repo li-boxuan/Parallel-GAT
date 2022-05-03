@@ -8,9 +8,14 @@ void gatForwardCUDA(float *W, float *A, float *input_feats, sparse_matrix *adj, 
                     int out_dim, int num_heads, int num_nodes, float *output_feats, float min_f);
 
 int main(int argc, char **argv) {
-  sparse_matrix adj = sparse_matrix();
-  int num_nodes = 400;
-  int in_dim = 512;
+  sparse_matrix adj = sparse_matrix("../data/generated/5000.1e-1.adj.txt");
+//  int num_nodes = 400;
+//  int in_dim = 512;
+//  int num_heads = 8;
+//  int out_dim = 64;
+  int num_nodes = adj.num_rows;
+  int in_dim = 1433;
+//  int in_dim = 500;
   int num_heads = 8;
   int out_dim = 64;
   std::default_random_engine generator;

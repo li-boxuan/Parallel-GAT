@@ -14,9 +14,10 @@ public:
     int num_elements;
     int *col_idx;
     int *delim;
+    float *vals;
 
-    sparse_matrix() {
-      std::string filename("../data/adj.txt");
+    sparse_matrix(std::string fname) {
+      std::string filename(fname);
       std::string line;
       std::stringstream ss;
       std::ifstream input_file(filename.c_str());
@@ -29,6 +30,7 @@ public:
       ss >> num_rows >> num_elements;
       col_idx = new int[num_elements];
       delim = new int[num_rows + 1];
+      vals = new float[num_elements];
       std::stringstream iss;
       std::getline(input_file, line);
       iss << line;
@@ -46,6 +48,7 @@ public:
     ~sparse_matrix() {
       delete col_idx;
       delete delim;
+      delete vals;
     }
 };
 

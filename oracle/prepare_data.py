@@ -104,8 +104,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--dataset", "-ds", type=str, choices=["citeseer", "pubmed", "cora"], default="cora")
 args = parser.parse_args()
 dataset = args.dataset
-# cora: nnz: 13264, indices: 13264, indptr: 2709
-# pubmed: nnz: 108365, indices: 108365, indptr: 19718
+# cora: nnz: 13264, indices: 13264, indptr: 2709, #feat: 1433, #nodes: 2708
+# pubmed: nnz: 108365, indices: 108365, indptr: 19718, #feat: 500, #nodes:19717
 
 # citeseer: nnz: 12431, indices: 12431, indptr: 3328
 
