@@ -10,6 +10,7 @@ F-1 score, which proves the correctness of our implementation.
 
 # OpenMP Parallelism
 
+## Naive approach
 The first naive approach (commit 13b859) we tried was to simply add
 `#pragma omp parallel for` before the beginning of every outmost
 for-loop. This leads to 2x speedup (on a 8-core machine) which is far from ideal. Clearly,
@@ -22,6 +23,7 @@ indicating this approach leads to completely wrong results. After removing
 inappropriate parallelism and adding critical sections, we get back the correct
 results with only 30% speedup on a 8-core machine.
 
+## Revise sequential logic
 To exploit the parallelism better, we revised the code logic. Without surprise, we found out the
 original sequential implementation could be improved. In commit 581cce, we changed
 the way we compute softmax for attention values. In machine learning, to find the softmax value for
@@ -47,3 +49,14 @@ that this is because the model parameters were trained in the original way of co
 softmax. Due to the way the PyTorch version is implemented, it is cumbersome to align
 it to our C++ version and retrain the model. We leave it as an exercise if readers
 are interested.
+
+## Fine-grained tuning
+We then try more parallelism strategies. In other words, we try parallelize different
+sections and find best regions to parallelize. In ed67aff, we achieve 0.35s using
+8 threads on an 8-core machine, which is 4.2x faster than the sequential version
+tested on the same machine. We then optimize the code logic further by removing
+unnecessary data structures (e.g. we removed an array and used one local variable
+instead) and reducing computation steps (e.g. rather than calculate attention for
+each neighbor and then find max attention, we only calculate max heat from neighborhoods
+and then use max heat to calculate max attention). This leads to a slight improvement
+on performance, but overall speedup remains roughly the same.
