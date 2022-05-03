@@ -149,7 +149,7 @@ public class GraphAttentionNetworkVertexProgram extends StaticVertexProgram {
             messenger.sendMessage(this.incidentMessageScope, msgs);
             return;
         }
-        // in odd iterations, receive heats from neighbors and calculate output
+        // in odd iterations, receive messages from neighbors and calculate output
         float[] heats1 = new float[headDim];
         for (int k = 0; k < headDim; k++) {
             float heat1 = 0;
