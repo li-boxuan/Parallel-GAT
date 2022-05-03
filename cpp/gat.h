@@ -4,6 +4,7 @@
 #include "param.h"
 #include "sparse.h"
 #include <math.h>
+#include <chrono>
 #include <random>
 
 #ifdef USEOPENMP
@@ -99,10 +100,13 @@ public:
     }
 
     void forward(Nodes *features, sparse_matrix *adj) {
+      // using namespace std::chrono;
+      // typedef std::chrono::high_resolution_clock Clock;
+      // typedef std::chrono::duration<double> dsec;
       // prepare messages
 #pragma omp parallel for
-      for (int i = 0; i < num_heads; i++) {
-        for (int j = 0; j < num_nodes; j++) {
+      for (int j = 0; j < num_nodes; j++) {
+        for (int i = 0; i < num_heads; i++) {
           for (int row_idx = 0; row_idx < msg_dim; row_idx++) {
             for (int col_idx = 0; col_idx < feat_dim; col_idx++) {
               msgs[i][j][row_idx] += params[i]->W[row_idx][col_idx] * features->input_feats[j][col_idx];
@@ -112,8 +116,8 @@ public:
       }
 
 #pragma omp parallel for
-      for (int i = 0; i < num_heads; i++) {
-        for (int j = 0; j < num_nodes; j++) {
+      for (int j = 0; j < num_nodes; j++) {
+        for (int i = 0; i < num_heads; i++) {
           float heat_1 = 0.f;
           float heat_2 = 0.f;
           for (int v = 0; v < msg_dim; v++) {
@@ -125,6 +129,7 @@ public:
         }
       }
 
+      // auto start = Clock::now();
       for (int i = 0; i < num_heads; i++) {
         for (int j = 0; j < num_nodes; j++) {
           int start_idx = adj->delim[j];
@@ -157,12 +162,14 @@ public:
           }
         }
       }
-      
+      // double duration = duration_cast<dsec>(Clock::now() - start).count();
+      // std::cout << "critical section elapsed time = " << duration << std::endl;
+
       // Add skip or residual connection
       if (feat_dim == msg_dim) {
 #pragma omp parallel for
-        for (int i = 0; i < num_heads; i++) {
-          for (int j = 0; j < num_nodes; j++) {
+        for (int j = 0; j < num_nodes; j++) {
+          for (int i = 0; i < num_heads; i++) {
             for (int v = 0; v < msg_dim; v++) {
               features->output_feats[j][i * msg_dim + v] += features->input_feats[j][v];
             }
@@ -170,8 +177,8 @@ public:
         }
       } else {
 #pragma omp parallel for
-        for (int i = 0; i < num_heads; i++) {
-          for (int j = 0; j < num_nodes; j++) {
+        for (int j = 0; j < num_nodes; j++) {
+          for (int i = 0; i < num_heads; i++) {
             for (int row_idx = 0; row_idx < msg_dim; row_idx++) {
               for (int col_idx = 0; col_idx < feat_dim; col_idx++) {
                 features->output_feats[j][i * msg_dim + row_idx] += params[i]->S[row_idx][col_idx] * features->input_feats[j][col_idx];

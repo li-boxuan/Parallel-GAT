@@ -70,17 +70,17 @@ each neighbor and then find max attention, we only calculate max heat from neigh
 and then use max heat to calculate max attention). This leads to a slight improvement
 on performance, but overall speedup remains roughly the same.
 
-### Experiments
+### Experiment
 
-The experiments are conducted in a CMU GHC machine, an 8-core Intel(R) Core(TM) i7-9700 CPU @ 3.00GHz
+The experiment is conducted in a CMU GHC machine, an 8-core Intel(R) Core(TM) i7-9700 CPU @ 3.00GHz
 machine.
 
-| Number of Threads | Time   | Speedup |
-|-------------------|--------|---------|
-| 1x                | 1.4975 | 1x      |
-| 4x                | 0.5224 | 2.87x   |
-| 6x                | 0.3532 | 4.24x   |
-| 8x                | 0.3508 | 4.27x   |
+| Number of Threads | Time    | Speedup |
+|-------------------|---------|---------|
+| 1x                | 1.4975s | 1x      |
+| 4x                | 0.5224s | 2.87x   |
+| 6x                | 0.3532s | 4.24x   |
+| 8x                | 0.3508s | 4.27x   |
 
 We can see that the program scales well when the number of threads is smaller than
 or equal to 6. This is because the max number of attention heads is 6. Adding more
@@ -88,3 +88,58 @@ threads does not help here. The fact that 8x threads perform slightly better tha
 threads is due to the activation function parallelism. In activation function, we
 parallelize the computations by nodes, partly because there is no presence of "head"
 in activation step.
+
+
+## Node-oriented Parallelism
+
+Head-oriented parallelism does not scale when the number of threads exceeds number
+of heads. When we use a powerful machine or even a super computer where we have
+64x or even 128x threads, we have to use a different parallelism strategy. In this
+section, we discuss the node-oriented parallelism strategy we adopt.
+
+### Change loop order
+
+Converting the program from head-oriented parallelism to node-oriented parallelism
+is straight-forward. In many places, we have nested for-loops in the following format:
+
+```cpp
+for (int i = 0; i < num_heads; i++) {
+    for (int j = 0; j < num_nodes; j++) {
+        // do stuff
+    }
+}    
+```
+
+To leverage node-oriented parallelism, we change the loop order into the following
+sequence:
+
+```cpp
+for (int j = 0; j < num_nodes; j++) {
+    for (int i = 0; i < num_heads; i++) {
+        // do stuff
+    }
+}    
+```
+
+Then we add OpenMP pragma before the outer loop, and we are done.
+
+### Experiment
+
+The experiment is conducted in a Pittsburgh Supercomputing Center (PSC) machine.
+
+| Number of Threads | Time    | Speedup |
+|-------------------|---------|---------|
+| 1x                | 1.5825s | 1x      |
+| 4x                | 0.4303s | 3.68x   |
+| 16x               | 0.1469s | 10.77x  |
+| 64x               | 0.0814s | 19.44x  |
+| 128x              | 0.1959s | 8.08x   |
+
+We also record the elapsed time for the critical section in the code: 0.043 seconds.
+According to Amdahl's law, the theoretical maximum speedup that can be achieved
+using N processors is: S(N) = 1/((1-P)+(P/N)), where P is the portion of the program
+that can be made parallel. In our case, P = 0.9728. Therefore, S(64) = 23.58, meaning
+that the maximum speedup we can achieve for 64 threads is 23.58, which is close
+to the value we achieve in the experiment.
+
+Interestingly, 128x is much slower than 64x threads and slightly slower than 16x threads.
