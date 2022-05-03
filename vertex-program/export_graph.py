@@ -45,5 +45,5 @@ if __name__ == "__main__":
             g.V(v1).addE("connect").to(v2).next()
     f.close()
 
-    output_path = "/Users/liboxuan/open-source/tinkerpop/gremlin-test/src/main/resources/org/apache/tinkerpop/gremlin/structure/io/gryo/ppi-v3d0.kryo"
+    output_path = "./ppi-v3d0.kryo"
     g.io(output_path).write().iterate()
