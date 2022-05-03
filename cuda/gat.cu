@@ -10,7 +10,6 @@
 
 #define TILE_WIDTH 32
 #define TILE_SIZE (TILE_WIDTH * TILE_WIDTH)
-#define RM(r, c, width) ((r) * (width) + (c))
 
 __global__ void mm_kernel(int m, int p, int n, float *device_A, float *device_B, float *device_C) {
   // (m, p) * (p, n)
@@ -209,12 +208,6 @@ void gatForwardCUDA(float *W, float *A, float *input_feats, sparse_matrix *adj, 
   kernelDuration = kernelEndTime - kernelStartTime;
   printf("Kernel invocation: %.3f ms\n", 1000.f * kernelDuration);
 
-//  float *test_heats;
-//  test_heats = new float[num_heads * 2 * num_nodes];
-//  cudaMemcpy(test_heats, device_heats, num_heads * 2 * num_nodes * sizeof(float), cudaMemcpyDeviceToHost);
-//  printf("heats %.3f %.3f %.3f %.3f\n", test_heats[0], test_heats[1], test_heats[2], test_heats[3]);
-//  delete(test_heats);
-
   cudaFree(device_A);
 
   float *device_attn;
@@ -239,12 +232,6 @@ void gatForwardCUDA(float *W, float *A, float *input_feats, sparse_matrix *adj, 
   kernelDuration = kernelEndTime - kernelStartTime;
   printf("Kernel invocation: %.3f ms\n", 1000.f * kernelDuration);
 
-
-//  float *test_attn;
-//  test_attn = new float[num_heads * adj->num_elements];
-//  cudaMemcpy(test_attn, device_attn, num_heads * adj->num_elements * sizeof(float), cudaMemcpyDeviceToHost);
-//  printf("attn %.3f %.3f %.3f %.3f\n", test_attn[0], test_attn[1], test_attn[2], test_attn[3]);
-//  delete(test_attn);
   cudaFree(device_heats);
 
   float *device_output_feats;
@@ -262,12 +249,6 @@ void gatForwardCUDA(float *W, float *A, float *input_feats, sparse_matrix *adj, 
   kernelDuration = kernelEndTime - kernelStartTime;
   printf("Kernel invocation: %.3f ms\n", 1000.f * kernelDuration);
 
-//  float *test_output_feats;
-//  test_output_feats = new float[num_nodes * num_heads * out_dim];
-//  cudaMemcpy(test_output_feats, device_output_feats, num_nodes * num_heads * out_dim * sizeof(float), cudaMemcpyDeviceToHost);
-//  printf("output_feats %.3f %.3f %.3f %.3f\n", test_output_feats[0], test_output_feats[1], test_output_feats[2], test_output_feats[3]);
-//  delete(test_output_feats);
-
   cudaFree(device_msgs);
   cudaFree(device_col_idx);
   cudaFree(device_delim);
@@ -284,7 +265,6 @@ void gatForwardCUDA(float *W, float *A, float *input_feats, sparse_matrix *adj, 
   }
 
   double overallDuration = endTime - startTime;
-//  printf("Kernel invocation: %.3f ms\t\t[%.3f GB/s]\n", 1000.f * kernelDuration, toBW(totalBytes, kernelDuration));
   printf("Overall: %.3f ms\n", 1000.f * overallDuration);
 }
 

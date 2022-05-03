@@ -14,7 +14,7 @@ public:
     float **output_feats;
 
     Nodes(int n_node, int in_dim, int out_dim) :
-        input_dim(in_dim), output_dim(out_dim), num_nodes(n_node){
+        input_dim(in_dim), output_dim(out_dim), num_nodes(n_node) {
       input_feats = (float **) calloc(sizeof(float *), num_nodes);
       for (int i = 0; i < num_nodes; i++) {
         input_feats[i] = (float *) calloc(sizeof(float), input_dim);

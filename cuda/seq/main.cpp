@@ -3,7 +3,7 @@
 #include "../CycleTimer.h"
 #include "../sparse.h"
 
-void run_cora() {
+void run() {
   // load PPI graph adjacency matrix
   sparse_matrix adj = sparse_matrix("../../data/generated/5000.3e-1.adj.txt");
   int num_nodes = adj.num_rows;
@@ -28,7 +28,7 @@ void run_cora() {
 }
 
 int main() {
-  run_cora();
+  run();
   return 0;
 }
 

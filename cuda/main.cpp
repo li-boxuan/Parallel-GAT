@@ -9,10 +9,6 @@ void gatForwardCUDA(float *W, float *A, float *input_feats, sparse_matrix *adj, 
 
 int main(int argc, char **argv) {
   sparse_matrix adj = sparse_matrix("../data/generated/5000.1e-1.adj.txt");
-//  int num_nodes = 400;
-//  int in_dim = 512;
-//  int num_heads = 8;
-//  int out_dim = 64;
   int num_nodes = adj.num_rows;
   int in_dim = 1433;
 //  int in_dim = 500;
@@ -34,10 +30,6 @@ int main(int argc, char **argv) {
   for (int i = 0; i < num_heads * 2 * out_dim; i++) {
     A[i] = distribution(generator);
   }
-//  printf("inputs: %.3f %.3f %.3f %.3f\n", input_feats[0], W[0], A[0], output_feats[0]);
-//  printf("adj col_idx: %d %d %d\n", adj.col_idx[0], adj.col_idx[1], adj.col_idx[2]);
-//  printf("adj delim: %d %d %d\n", adj.delim[0], adj.delim[1], adj.delim[2]);
-//  printf("adj: %d %d\n", adj.num_elements, adj.num_rows);
 
   gatForwardCUDA(W, A, input_feats, &adj, in_dim, out_dim, num_heads, num_nodes, output_feats,
                  -std::numeric_limits<float>::max());
