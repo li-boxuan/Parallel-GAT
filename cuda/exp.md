@@ -55,7 +55,7 @@ Each column is a different graph density.
 
 
 
-##### #nodes = 1200, #heads=8, #msgs=64
+##### #nodes = 1200, #feats = 50, #heads=8, #msgs=64
 
 Each column is a different graph density.
 
