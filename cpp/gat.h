@@ -113,6 +113,7 @@ public:
         }
       }
 
+#pragma omp parallel for
       for (int i = 0; i < num_heads; i++) {
         for (int j = 0; j < num_nodes; j++) {
           float heat_1 = 0.f;
@@ -159,8 +160,10 @@ public:
           }
         }
       }
+      
       // Add skip or residual connection
       if (feat_dim == msg_dim) {
+#pragma omp parallel for
         for (int i = 0; i < num_heads; i++) {
           for (int j = 0; j < num_nodes; j++) {
             for (int v = 0; v < msg_dim; v++) {
@@ -169,6 +172,7 @@ public:
           }
         }
       } else {
+#pragma omp parallel for
         for (int i = 0; i < num_heads; i++) {
           for (int j = 0; j < num_nodes; j++) {
             for (int row_idx = 0; row_idx < msg_dim; row_idx++) {

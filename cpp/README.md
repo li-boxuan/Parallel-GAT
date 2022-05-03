@@ -5,7 +5,7 @@ Network (inference only). We use PyTorch to train a Graph
 Attention Network for Protein-Protein Interactions (PPI) datasets.
 The trained GAT has 0.965841 micro F-1 score on the test PPI graph.
 Then, we export the trained parameters and use our C++ implementation
-to run the inference. The sequential implementation achieves same micro
+to run the inference. The sequential C++ implementation achieves same micro
 F-1 score, which proves the correctness of our implementation.
 
 # OpenMP Parallelism
