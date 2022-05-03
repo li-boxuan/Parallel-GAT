@@ -1,7 +1,15 @@
 #include "sparse.h"
 #include "node.h"
 #include "gat.h"
+#include <cstring>
 #include <chrono>
+
+#ifdef USEOPENMP
+#include <omp.h>
+#endif
+
+static int _argc;
+static const char **_argv;
 
 int runPPIGraph() {
   using namespace std::chrono;
@@ -87,7 +95,22 @@ int runPPIGraph() {
   return 0;
 }
 
-int main() {
+int get_option_int(const char *option_name, int default_value) {
+  for (int i = _argc - 2; i >= 0; i -= 2)
+    if (strcmp(_argv[i], option_name) == 0)
+      return atoi(_argv[i + 1]);
+  return default_value;
+}
+
+int main(int argc, const char *argv[]) {
+  _argc = argc - 1;
+  _argv = argv + 1;
+  int num_of_threads = get_option_int("-n", 1);
+  printf("Number of threads: %d\n", num_of_threads);
+#ifdef USEOPENMP
+  omp_set_num_threads(num_of_threads);
+#endif
+
   return runPPIGraph();
 }
 

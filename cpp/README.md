@@ -1,7 +1,12 @@
 # Introduction
 
 This folder contains C++ implementation of Graph Attention
-Network (inference only).
+Network (inference only). We use PyTorch to train a Graph
+Attention Network for Protein-Protein Interactions (PPI) datasets.
+The trained GAT has 0.965841 micro F-1 score on the test PPI graph.
+Then, we export the trained parameters and use our C++ implementation
+to run the inference. The sequential implementation achieves same micro
+F-1 score, which proves the correctness of our implementation.
 
 # OpenMP Parallelism
 
@@ -39,6 +44,6 @@ for the PPI dataset. As a consequence, the computation time for the sequential
 version dropped by 21.59%, but the parallell speedup remained the same. One small
 pitfall is that the accuracy dropped from 0.965841 to 0.924718, but we are confident
 that this is because the model parameters were trained in the original way of computing
-softmax. Due to the way the oracle version is implemented, it is cumbersome to align
+softmax. Due to the way the PyTorch version is implemented, it is cumbersome to align
 it to our C++ version and retrain the model. We leave it as an exercise if readers
 are interested.
