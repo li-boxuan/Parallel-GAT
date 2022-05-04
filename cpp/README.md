@@ -143,3 +143,6 @@ that the maximum speedup we can achieve for 64 threads is 23.58, which is close
 to the value we achieve in the experiment.
 
 Interestingly, 128x is much slower than 64x threads and slightly slower than 16x threads.
+Due to the lack of profiling tool on PSC machine, we cannot analyze cache references
+and cache misses, but our hypothesis is that the increasing number of threads causes
+more and more cache contentions and misses.
