@@ -4,9 +4,9 @@ This folder contains C++ implementation of Graph Attention Network (inference on
 
 # OpenMP Parallelism
 
-## Head-oriented Parallelism
+## Head-wise Parallelism
 
-A typical attention module usually repeats its computation multiple times in parallel, thus is also known as "multi-head attention". Computations for different heads follow the same computation paths and are not interdependent, thus could easily be parallelized.  In head-oriented parallelism strategy, we use OpenMP to parallelize different heads. Note that the number of heads is usually a small number (in our model, it's a number ranging from 4 to 6), which makes this strategy only suitable when number of threads is not large.
+A typical attention module usually repeats its computation multiple times in parallel, thus is also known as "multi-head attention". Computations for different heads follow the same computation paths and are not interdependent, thus could easily be parallelized.  In head-wise parallelism strategy, we use OpenMP to parallelize different heads. Note that the number of heads is usually a small number (in our model, it's a number ranging from 4 to 6), which makes this strategy only suitable when number of threads is not large.
 
 ### Naive approach
 The first naive approach (commit 13b859) we tried was to simply add `#pragma omp parallel for` before the beginning of every outmost for-loop. This leads to 2x speedup (on a 8-core machine) which is far from ideal. Clearly, this naive approach does not consider data dependency. As a consequence, it even leads to a wrong result. The sequential version achieves 0.965841 micro F1 score on the PPI (Protein-Protein Interactions) dataset, which is exactly the same figure achieved by the oracle PyTorch implementation.  The naive OpenMP approach, however, leads to only 0.27 micro F1 score, indicating this approach leads to completely wrong results. After removing inappropriate parallelism and adding critical sections, we get back the correct results with only 30% speedup on a 8-core machine.
@@ -31,13 +31,13 @@ The experiment is conducted in a CMU GHC machine, an 8-core Intel(R) Core(TM) i7
 We can see that the program scales well when the number of threads is smaller than or equal to 6. This is because the max number of attention heads is 6. Adding more threads does not help here. The fact that 8x threads perform slightly better than 4x threads is due to the activation function parallelism. In activation function, we parallelize the computations by nodes, partly because there is no presence of "head" in activation step.
 
 
-## Node-oriented Parallelism
+## Node-wise Parallelism
 
-Head-oriented parallelism does not scale when the number of threads exceeds number of heads. When we use a powerful machine or even a super computer where we have 64x or even 128x threads, we have to use a different parallelism strategy. In this section, we discuss the node-oriented parallelism strategy we adopt.
+Head-wise parallelism does not scale when the number of threads exceeds number of heads. When we use a powerful machine or even a super computer where we have 64x or even 128x threads, we have to use a different parallelism strategy. In this section, we discuss the node-wise parallelism strategy we adopt.
 
 ### Change loop order
 
-Converting the program from head-oriented parallelism to node-oriented parallelism is straight-forward. In many places, we have nested for-loops in the following format:
+Converting the program from head-wise parallelism to node-wise parallelism is straight-forward. In many places, we have nested for-loops in the following format:
 
 ```cpp
 for (int i = 0; i < num_heads; i++) {
@@ -47,7 +47,7 @@ for (int i = 0; i < num_heads; i++) {
 }    
 ```
 
-To leverage node-oriented parallelism, we change the loop order into the following sequence:
+To leverage node-wise parallelism, we change the loop order into the following sequence:
 
 ```cpp
 for (int j = 0; j < num_nodes; j++) {
