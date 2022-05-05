@@ -18,6 +18,18 @@ In GCNs, the aggregation is instantiated as average pooling over the incoming me
 
 We could also do a step further and introduce multi-head attention mechanism, where within each layer we use multiple $W_{k}$ and process nodes with different $W_{k}$ in parallel. Then we concatenate the resultant updated feature tensors as the canonical outputs of this layer.
 
+## Project Structure
+
+| Module                              | Description                                                               |
+|-------------------------------------|---------------------------------------------------------------------------|
+| [CPP](./cpp)                        | Sequential C++ version and OpenMP parallel version                        |
+| [CUDA](./cuda/)                     | CUDA parallel version                                                     |
+| [Vertex Program](./vertex-program/) | Java parallel version implemented in TinkerPop's vertex program framework |
+| [ORACLE](./oracle)                  | PyTorch implementation of GAT                                             |
+| [DATA](./data)                      | Graph Datasets                                                            |
+| [MODELS](./models)                  | Parameters of trained GAT models                                          |
+
+
 ## Results
 
 Please see the [final report](./report.pdf).
