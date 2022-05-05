@@ -32,4 +32,4 @@ We could also do a step further and introduce multi-head attention mechanism, wh
 
 ## Results
 
-Please see the [final report](./report.pdf).
+Please see the [presentation](https://www.li-boxuan.com/img/parallel-gat.mp4) and [final report](./report.pdf).
