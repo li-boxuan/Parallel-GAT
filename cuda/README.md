@@ -1,3 +1,9 @@
+# Introduction
+
+This folder contains the CUDA implementation of GAT. It only contains one GAT layer. It is benchmarked using different datasets including Cora, PubMed, and randomly generated graphs.
+
+# Experiments
+
 #### TILE_WIDTH=32
 
 ```
